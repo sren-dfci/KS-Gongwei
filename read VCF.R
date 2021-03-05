@@ -58,5 +58,13 @@ snp_path <- file.path(folder_path, "SNP/Annotation")
 
 d_indel <- calculateVAF(indel_path)
 d_snp <- calculateVAF(snp_path)
-d_indel_snp <- rbindlist(list(d_indel, d_snp), idcol = "mutation")
-fwrite(d_indel_snp, "indel snp VAR.csv")
+# Combine d_indel and d_snp
+d_indel_snp <- rbindlist(
+  list(indel = d_indel, snp = d_snp), 
+  idcol = "mutation"
+)
+# Subset columns
+v_select_vars <- c(names(d_indel_snp)[1:12], "ExonicFunc", "FORMAT",
+"info_detail", names(d_indel_snp)[92:100])
+d_indel_snp_sub <- d_indel_snp[, .SD, .SDcols = v_select_vars]
+fwrite(d_indel_snp_sub, "indel_snp_VAR_2021_3_5.csv")
