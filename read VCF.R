@@ -36,12 +36,13 @@ calculateVAF <- function(folder.path) {
   # create new columns for each element in column FORMAT
   d_whole[, (v_format_names) := tstrsplit(info_detail, ":", fixed = TRUE)]
   # create new columns for each element in column AD
-  d_whole[, c("ADREF", "ADALT", "ADALT2") := tstrsplit(AD, ",", fixed = TRUE)]
+  d_whole[, c("ADREF", "ADALT1", "ADALT2") := tstrsplit(AD, ",", fixed = TRUE)]
   # convert chr to num
-  v_num_vars <- c("ADREF", "ADALT", "ADALT2", "DP")
+  v_num_vars <- c("ADREF", "ADALT1", "ADALT2", "DP")
   d_whole[, (v_num_vars) := lapply(.SD, as.numeric), .SDcols = v_num_vars]
   # calculate VAF
-  d_whole[, VAF := 1 - ADREF / DP]
+  d_whole[, VAF1 := ADALT1 / DP]
+  d_whole[, VAF2 := ADALT2 / DP]
   # print unique GTs
   cat("\nUnique GTs: \n")
   print(d_whole[, .N, by = GT])
@@ -64,7 +65,15 @@ d_indel_snp <- rbindlist(
   idcol = "mutation"
 )
 # Subset columns
-v_select_vars <- c(names(d_indel_snp)[1:12], "ExonicFunc", "FORMAT",
-"info_detail", names(d_indel_snp)[92:100])
+v_select_vars <- c(
+  # mutation, file, CHROM, POS, ... Func, Gene
+  names(d_indel_snp)[1:12], 
+  "ExonicFunc", "FORMAT", "info_detail", 
+  # GT, AD, DP, GQ, PL, ADREF, ADALT1/2, VAF1/2
+  names(d_indel_snp)[92:101]
+)
 d_indel_snp_sub <- d_indel_snp[, .SD, .SDcols = v_select_vars]
-fwrite(d_indel_snp_sub, "indel_snp_VAR_2021_3_5.csv")
+fwrite(d_indel_snp_sub, "COH_indel_snp_VAF_2021_3_11.csv")
+
+
+folder_path <- "Y:/numerabilis/gongwei/COH-1.WES.Novogene.Jan.2021/03.Variant_and_Annotation/03.Variant_and_Annotation/Mutation"
